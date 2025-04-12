@@ -1,17 +1,21 @@
+// src/components/spritz_components.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth, provider } from '../firebase-config';
 import { signInWithPopup, signOut } from 'firebase/auth';
 
 const SpritzComponent = () => {
   const [searchText, setSearchText] = useState('');
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const handleSearchChange = (event) => {
     setSearchText(event.target.value);
   };
 
   const handleSearchClick = () => {
-    console.log('Searching for:', searchText);
+    // Navigate to SearchResultsPage with the query in the URL
+    navigate(`/searchResultsPage?query=${searchText}`);
   };
 
   const handleGoogleSignIn = async () => {
@@ -20,7 +24,7 @@ const SpritzComponent = () => {
       setUser(result.user);
       console.log('User signed in:', result.user);
     } catch (error) {
-      console.error("Error signing in with Google:", error.message);
+      console.error('Error signing in with Google:', error.message);
     }
   };
 
@@ -30,7 +34,7 @@ const SpritzComponent = () => {
       setUser(null);
       console.log('User signed out');
     } catch (error) {
-      console.error("Error signing out:", error.message);
+      console.error('Error signing out:', error.message);
     }
   };
 

@@ -1,11 +1,17 @@
+// App.js or wherever you're defining your routes
 import React from 'react';
-import SpritzComponent from './components/spritz_components'; // Use the correct filename here
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SpritzComponent from './components/spritz_components';
+import SearchResultsPage from './components/SearchResultsPage';
 
 function App() {
   return (
-    <div className="App">
-      <SpritzComponent /> {/* Add your component here */}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<SpritzComponent />} />
+        <Route path="/searchResultsPage" element={<SearchResultsPage />} />
+      </Routes>
+    </Router>
   );
 }
 
