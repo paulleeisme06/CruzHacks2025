@@ -1,0 +1,74 @@
+openapi: 3.0.0
+info:
+  title: Fragrance Finder API
+  version: 1.0.0
+  description: API documentation for the Fragrance Finder project
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /api/scrape:
+    post:
+      summary: Scrape a fragrance URL and find dupes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/fragrance"
+      responses:
+        "200":
+          description: A list of fragrance dupes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DupeList"
+
+        "400":
+          description: Invalid input (e.g. malformed URL or empty body)
+
+        "404":
+          description: The URL could not be reached or scraped (e.g. broken link)
+
+        "422":
+          description: Page was not determined to be a fragrance (LLM or scraper ruled it out)
+
+        "500":
+          description: LLM analysis failed (e.g. bad JSON, API error, internal processing issue)
+
+components:
+  schemas:
+    DupeList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Dupe"
+
+    Dupe:
+      type: object
+      additionalProperties: true
+      properties:
+        name:
+          type: string
+          example: "Citrus Mist by CheapScents"
+        price:
+          type: string
+          example: "$19.99"
+        similarity:
+          type: string
+          example: "92%"
+        category:
+          type: string
+          example: "citrus"
+        link:
+          type: string
+          format: uri
+        image:
+          type: string
+          format: uri
