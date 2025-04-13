@@ -1,10 +1,70 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+puppeteer.use(StealthPlugin());
+
+export async function scrapeDupe(url) {
+  let browser;
+
+  try {
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled',
+      ],
+    });
+
+    const page = await browser.newPage();
+
+    // Set a realistic user agent
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+      'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+      'Chrome/122.0.0.0 Safari/537.36'
+    );
+
+    // Intercept and block unnecessary resources
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const resourceType = req.resourceType();
+      if (['font', 'media'].includes(resourceType)) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
+    // Navigate to the URL and wait for the network to be idle
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 50000 });
+
+    // Extract a portion of the page's text content
+    const scraped = await page.evaluate(() => {
+      const section = document.querySelector('main, .product-info, .description, body');
+      const text = section?.innerText?.slice(0, 8000) || '';
+    
+      const image =
+      document.querySelector('img[src*="product" i]')?.src ||
+      getMeta('og:image') ||
+      '';
+
+      return text + image;
+    })
+
+    // console.log(scraped.slice(0, 100));
+    return scraped;
+
+  } catch (err) {
+    console.error('Error in scrapeDupe:', err.message);
+    throw new Error('Failed to scrape dupe page');
+  } finally {
+    if (browser) await browser.close();
+  }
+}
 
 export async function scrapeProductDetails(url) {
-  if (!url || typeof url !== 'string') {
-    throw new Error('Invalid URL');
-  }
-
+  // console.log(url);
   let browser;
 
   try {
@@ -62,7 +122,7 @@ export async function scrapeProductDetails(url) {
       }
     });
 
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
     // Scrape key info (same as before)...
     const data = await page.evaluate(() => {
@@ -105,10 +165,17 @@ export async function scrapeProductDetails(url) {
         if (longDescription.length > 1500) break;
       }
 
+      const priceCandidates = Array.from(document.querySelectorAll('body *'))
+      .map(el => el.innerText)
+      .filter(text => text && /\$\s?\d{1,4}(?:\.\d{2})?/.test(text) || /USD\s?\d{1,4}/.test(text));
+
+      const price = priceCandidates.length > 0 ? priceCandidates[0].trim() : '';
+
       return {
         name,
         image,
-        description: longDescription.trim()
+        description: longDescription.trim(),
+        price
       };
     });
 
