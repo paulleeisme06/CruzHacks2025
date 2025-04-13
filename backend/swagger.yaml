@@ -3,6 +3,7 @@ info:
   title: Fragrance Finder API
   version: 1.0.0
   description: API documentation for the Fragrance Finder project
+
 servers:
   - url: http://localhost:3000
 
@@ -25,50 +26,65 @@ paths:
                   example: "https://example.com/fragrance"
       responses:
         "200":
-          description: A list of fragrance dupes
+          description: A structured result of the scraped fragrance and its dupe
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DupeList"
+                $ref: "#/components/schemas/FragranceDupeResponse"
 
         "400":
           description: Invalid input (e.g. malformed URL or empty body)
 
         "404":
-          description: The URL could not be reached or scraped (e.g. broken link)
+          description: The URL could not be reached or scraped
 
         "422":
-          description: Page was not determined to be a fragrance (LLM or scraper ruled it out)
+          description: Page was not determined to be a fragrance
 
         "500":
-          description: LLM analysis failed (e.g. bad JSON, API error, internal processing issue)
+          description: LLM analysis failed or internal server error
 
 components:
   schemas:
-    DupeList:
-      type: array
-      items:
-        $ref: "#/components/schemas/Dupe"
-
-    Dupe:
+    FragranceDupeResponse:
       type: object
-      additionalProperties: true
       properties:
-        name:
+        targetName:
           type: string
-          example: "Citrus Mist by CheapScents"
-        price:
+          example: "Ocean Storm"
+        targetCategory:
+          type: string
+          example: "masculine"
+        targetCopy:
+          type: string
+          example: "A bold aquatic scent inspired by the raw power of crashing waves."
+        targetImage:
+          type: string
+          format: uri
+          example: "https://example.com/images/ocean-storm.jpg"
+        targetPrice:
+          type: string
+          example: "$89.99"
+        dupeName:
+          type: string
+          example: "Blue Breeze"
+        dupeCategory:
+          type: string
+          example: "masculine"
+        dupeLink:
+          type: string
+          format: uri
+          example: "https://cheapscents.com/blue-breeze"
+        dupeBrand:
+          type: string
+          example: "BudgetScents"
+        dupeCopy:
+          type: string
+          example: "Blue Breeze offers a crisp and clean scent at a fraction of the designer price."
+        dupeImage:
+          type: string
+          format: uri
+          example: "https://cheapscents.com/images/blue-breeze.jpg"
+        dupePrice:
           type: string
           example: "$19.99"
-        similarity:
-          type: string
-          example: "92%"
-        category:
-          type: string
-          example: "citrus"
-        link:
-          type: string
-          format: uri
-        image:
-          type: string
-          format: uri

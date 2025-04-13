@@ -1,7 +1,7 @@
 // backend/routes/scrapeRoutes.js
 import * as db from '../services/db.js';
-import { scrapeProductDetails } from '../services/scraper.js';
-import { analyzeFragranceWithGemini } from '../services/gemini.js';
+import { scrapeProductDetails,  scrapeDupe} from '../services/scraper.js';
+import { analyzeFragranceWithGemini, analyzeDupePage } from '../services/gemini.js';
 
 export async function findDupes(req, res) {
   try {
@@ -32,35 +32,35 @@ export async function findDupes(req, res) {
       console.error('LLM failure:', err);
       return res.status(500).json({ error: 'LLM analysis failed' });
     }
-    let dbTest = await db.test();
-    return res.status(200).json({data: LLMresult, db: dbTest});
-    // let dupeResult = await db.findExactDupe(LLMresult.name);
-    // if (!dupeResult) {
-    //   dupeResult = await db.findCategoryDupe(LLMresult.category);
-    // }
-    // if (dupeResult.dupelink) {
-    //   let dupeScraped;
-    //   try {
-    //     dupeScraped = await scrapeProductDetails(dupeResult.dupelink);
-    //   } catch (err) {
+    // let dbTest = await db.test();
+    // return res.status(200).json({data: LLMresult, db: dbTest});
+    let dupeResult = await db.findExactDupe(LLMresult.name);
+    if (!dupeResult) {
+      dupeResult = await db.findCategoryDupe(LLMresult.category);
+      console.log("dupeResult", dupeResult);
+    }
+    let dupeScraped, dupeAnalysis;
+    if (dupeResult.dupelink) {
+        dupeScraped = await scrapeDupe(dupeResult.dupelink);
+    }
 
-    //   }
-    // }
-
-    // res.status(200).json({
-    //   targetName: LLMresult.name,
-    //   targetCategory: LLMresult.category,
-    //   targetCopy: LLMresult.copy,
-    //   targetImage: LLMresult.image,
-    //   targetPrice: LLMresult.price,
-    //   dupeName: dupeResult?.dupe,
-    //   dupeCategory: dupeResult?.category,
-    //   dupeLink: dupeResult?.dupelink,
-    //   dupeBrand: dupeResult?.dupebrand,
-    //   dupeCopy: dupeScraped?.copy,
-    //   dupeImage: dupeScraped?.image,
-    //   dupePrice: dupeScraped?.price,
-    // });
+    if(dupeScraped) {
+      dupeAnalysis = await analyzeDupePage(dupeScraped);
+    }
+    res.status(200).json({
+      targetName: LLMresult.name,
+      targetCategory: LLMresult.category,
+      targetCopy: LLMresult.copy,
+      targetImage: LLMresult.image,
+      targetPrice: LLMresult.price,
+      dupeName: dupeResult?.dupe,
+      dupeCategory: dupeResult?.category,
+      dupeLink: dupeResult?.dupelink,
+      dupeBrand: dupeResult?.dupebrand,
+      dupeCopy: dupeAnalysis?.copy,
+      dupeImage: dupeAnalysis?.image,
+      dupePrice: dupeAnalysis?.price,
+    });
 
   } catch (err) {
     console.error('Error in findDupes:', err);

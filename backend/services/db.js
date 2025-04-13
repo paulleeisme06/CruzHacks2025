@@ -1,13 +1,9 @@
 import pool from '../config/db.js';
 // export async function test() {
-//   const result = await pool.query(
-//     `
-//     SELECT * FROM dupe
-//     LIMIT 1
-//     `
-//   );
-//   return result.rows[0] || null;
+//   const result = await pool.query(`SELECT COUNT(*) FROM dupe`);
+//   return Number(result.rows[0].count); // Convert from string to number
 // }
+
 /**
 * Finds an exact dupe by target fragrance name.
 * @param {string} name
@@ -45,11 +41,14 @@ export async function findCategoryDupe(category) {
       data->>'dupebrand' AS dupebrand
     FROM dupe
     WHERE LOWER(data->>'category') = LOWER($1)
-      AND data->>'dupelink' IS NOT NULL
-      AND data->>'dupelink' != ''
-    LIMIT 1
+    ORDER BY
+      CASE
+        WHEN data->>'dupelink' IS NOT NULL AND data->>'dupelink' != '' THEN 0
+        ELSE 1
+      END
+    LIMIT 1;
     `,
     [category]
   );
- return result.rows[0]?.data || null;
+ return result.rows[0] || null;
 }
