@@ -62,7 +62,7 @@ export async function scrapeProductDetails(url) {
       }
     });
 
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
     // Scrape key info (same as before)...
     const data = await page.evaluate(() => {
@@ -105,10 +105,17 @@ export async function scrapeProductDetails(url) {
         if (longDescription.length > 1500) break;
       }
 
+      const priceCandidates = Array.from(document.querySelectorAll('body *'))
+      .map(el => el.innerText)
+      .filter(text => text && /\$\s?\d{1,4}(?:\.\d{2})?/.test(text) || /USD\s?\d{1,4}/.test(text));
+
+      const price = priceCandidates.length > 0 ? priceCandidates[0].trim() : '';
+
       return {
         name,
         image,
-        description: longDescription.trim()
+        description: longDescription.trim(),
+        price
       };
     });
 
