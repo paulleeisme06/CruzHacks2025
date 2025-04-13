@@ -24,6 +24,11 @@ const SpritzComponent = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      // Always prompt the user to select an account
+      provider.setCustomParameters({
+        prompt: 'select_account',
+      });
+  
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
       console.log('User signed in:', result.user);
