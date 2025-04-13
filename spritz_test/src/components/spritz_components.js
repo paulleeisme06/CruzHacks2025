@@ -1,5 +1,5 @@
 // src/components/spritz_components.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, provider } from '../firebase-config';
 import { signInWithPopup, signOut } from 'firebase/auth';
@@ -7,30 +7,20 @@ import { signInWithPopup, signOut } from 'firebase/auth';
 const SpritzComponent = () => {
   const [searchText, setSearchText] = useState('');
   const [user, setUser] = useState(null);
-  const [animateLogo, setAnimateLogo] = useState(false);
+  const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setAnimateLogo(true);
-  }, []);
 
   const handleSearchChange = (event) => {
     setSearchText(event.target.value);
+    if (showError) setShowError(false); // Clear error on typing
   };
 
-  const handleSearch = () => {
+  const handleSearchClick = () => {
     if (searchText.trim() === '') {
-      alert('Please enter a search query.');
-    } else {
-      navigate(`/searchResultsPage?query=${searchText}`);
-      setSearchText('');
+      setShowError(true);
+      return;
     }
-  };
-
-  const handleKeyPress = (event) => {
-    if (event.key === 'Enter') {
-      handleSearch();
-    }
+    navigate(`/searchResultsPage?query=${searchText}`);
   };
 
   const handleGoogleSignIn = async () => {
@@ -61,6 +51,7 @@ const SpritzComponent = () => {
         position: 'relative',
         background: 'linear-gradient(45deg, #748469, #ABB290, #AAC1B1, #F9EAD7, #F6F6EE)',
         overflow: 'hidden',
+        fontFamily: 'Playfair, serif',
       }}
     >
       <img
@@ -84,11 +75,9 @@ const SpritzComponent = () => {
           textAlign: 'center',
           color: 'black',
           fontSize: 128,
-          fontFamily: 'Playfair',
           fontWeight: '700',
           wordWrap: 'break-word',
-          transform: animateLogo ? 'scale(1)' : 'scale(0.8)',
-          transition: 'transform 0.6s ease-in-out',
+          animation: 'logoAnimation 1.5s ease-out', // Apply animation for logo
         }}
       >
         spritz
@@ -105,7 +94,6 @@ const SpritzComponent = () => {
           textAlign: 'center',
           color: 'black',
           fontSize: 36,
-          fontFamily: 'Playfair',
           fontWeight: '400',
           wordWrap: 'break-word',
         }}
@@ -113,7 +101,7 @@ const SpritzComponent = () => {
         Discover affordable luxury.
       </div>
 
-      {/* Search bar and button */}
+      {/* Search bar */}
       <div
         style={{
           width: 527,
@@ -121,10 +109,10 @@ const SpritzComponent = () => {
           left: 492,
           top: 427,
           position: 'absolute',
-          background: '#F4F4F4',
-          borderRadius: 30,
           display: 'flex',
-          alignItems: 'center',
+          borderRadius: '37px',
+          boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
+          overflow: 'hidden',
         }}
       >
         <input
@@ -132,38 +120,62 @@ const SpritzComponent = () => {
           style={{
             flexGrow: 1,
             height: '100%',
-            padding: '10px',
+            padding: '0 20px',
             border: 'none',
-            borderRadius: '30px',
+            outline: 'none',
             fontSize: '18px',
+            fontFamily: 'Arial, sans-serif',
           }}
           placeholder="Paste URL or Search"
           value={searchText}
           onChange={handleSearchChange}
-          onKeyDown={handleKeyPress}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSearchClick();
+          }}
         />
         <button
           style={{
-            width: '20%',
+            width: '160px',
             height: '100%',
-            backgroundColor: '#B7F0FF',
+            backgroundColor: '#4e73df',
             border: 'none',
-            borderRadius: '30px',
+            color: '#fff',
             fontSize: '18px',
             fontWeight: 'bold',
             cursor: 'pointer',
-            color: 'white',
             transition: 'background-color 0.3s',
           }}
-          onClick={handleSearch}
-          onMouseEnter={(e) => (e.target.style.backgroundColor = '#80D8FF')}
-          onMouseLeave={(e) => (e.target.style.backgroundColor = '#B7F0FF')}
+          onClick={handleSearchClick}
+          onMouseEnter={(e) => (e.target.style.backgroundColor = '#375abe')}
+          onMouseLeave={(e) => (e.target.style.backgroundColor = '#4e73df')}
         >
           Search
         </button>
       </div>
 
-      {/* Auth buttons and welcome */}
+      {/* Error Message */}
+      {showError && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 515,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            color: '#ff4d4f',
+            background: '#fff3f3',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            fontSize: '16px',
+            fontWeight: '500',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+            animation: 'fadeIn 0.5s ease-in-out', // Keep the message centered with fade-in
+          }}
+        >
+          Please enter something to search!
+        </div>
+      )}
+
+      {/* Auth buttons */}
       <div
         style={{
           position: 'absolute',
@@ -213,6 +225,31 @@ const SpritzComponent = () => {
           </>
         )}
       </div>
+
+      {/* Add CSS for logo animation and fade-in */}
+      <style>
+        {`
+          @keyframes logoAnimation {
+            0% {
+              opacity: 0;
+              transform: translateY(-100px);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes fadeIn {
+            0% {
+              opacity: 0;
+            }
+            100% {
+              opacity: 1;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
@@ -221,6 +258,7 @@ export default SpritzComponent;
 
 
 
+// // src/components/spritz_components.js
 // import React, { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { auth, provider } from '../firebase-config';
@@ -229,18 +267,20 @@ export default SpritzComponent;
 // const SpritzComponent = () => {
 //   const [searchText, setSearchText] = useState('');
 //   const [user, setUser] = useState(null);
+//   const [showError, setShowError] = useState(false);
 //   const navigate = useNavigate();
 
 //   const handleSearchChange = (event) => {
 //     setSearchText(event.target.value);
+//     if (showError) setShowError(false); // Clear error on typing
 //   };
 
 //   const handleSearchClick = () => {
-//     if (!searchText.trim()) {
-//       alert('Please enter a search query.');
+//     if (searchText.trim() === '') {
+//       setShowError(true);
 //       return;
 //     }
-//     navigate(`/searchResultsPage?query=${encodeURIComponent(searchText.trim())}`);
+//     navigate(`/searchResultsPage?query=${searchText}`);
 //   };
 
 //   const handleGoogleSignIn = async () => {
@@ -271,6 +311,7 @@ export default SpritzComponent;
 //         position: 'relative',
 //         background: 'linear-gradient(45deg, #748469, #ABB290, #AAC1B1, #F9EAD7, #F6F6EE)',
 //         overflow: 'hidden',
+//         fontFamily: 'Playfair, serif',
 //       }}
 //     >
 //       <img
@@ -294,7 +335,6 @@ export default SpritzComponent;
 //           textAlign: 'center',
 //           color: 'black',
 //           fontSize: 128,
-//           fontFamily: 'Playfair',
 //           fontWeight: '700',
 //           wordWrap: 'break-word',
 //         }}
@@ -313,7 +353,6 @@ export default SpritzComponent;
 //           textAlign: 'center',
 //           color: 'black',
 //           fontSize: 36,
-//           fontFamily: 'Playfair',
 //           fontWeight: '400',
 //           wordWrap: 'break-word',
 //         }}
@@ -321,7 +360,7 @@ export default SpritzComponent;
 //         Discover affordable luxury.
 //       </div>
 
-//       {/* Search bar and button */}
+//       {/* Search bar */}
 //       <div
 //         style={{
 //           width: 527,
@@ -329,10 +368,10 @@ export default SpritzComponent;
 //           left: 492,
 //           top: 427,
 //           position: 'absolute',
-//           background: '#F4F4F4',
-//           borderRadius: 30,
 //           display: 'flex',
-//           alignItems: 'center',
+//           borderRadius: '37px',
+//           boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
+//           overflow: 'hidden',
 //         }}
 //       >
 //         <input
@@ -340,37 +379,62 @@ export default SpritzComponent;
 //           style={{
 //             flexGrow: 1,
 //             height: '100%',
-//             padding: '10px',
+//             padding: '0 20px',
 //             border: 'none',
-//             borderRadius: '30px',
+//             outline: 'none',
 //             fontSize: '18px',
+//             fontFamily: 'Arial, sans-serif',
 //           }}
 //           placeholder="Paste URL or Search"
 //           value={searchText}
 //           onChange={handleSearchChange}
+//           onKeyDown={(e) => {
+//             if (e.key === 'Enter') handleSearchClick();
+//           }}
 //         />
 //         <button
 //           style={{
-//             width: '20%',
+//             width: '160px',
 //             height: '100%',
-//             backgroundColor: '#B7F0FF',
+//             backgroundColor: '#4e73df',
 //             border: 'none',
-//             borderRadius: '30px',
+//             color: '#fff',
 //             fontSize: '18px',
 //             fontWeight: 'bold',
 //             cursor: 'pointer',
-//             color: 'white',
 //             transition: 'background-color 0.3s',
 //           }}
 //           onClick={handleSearchClick}
-//           onMouseEnter={(e) => (e.target.style.backgroundColor = '#80D8FF')}
-//           onMouseLeave={(e) => (e.target.style.backgroundColor = '#B7F0FF')}
+//           onMouseEnter={(e) => (e.target.style.backgroundColor = '#375abe')}
+//           onMouseLeave={(e) => (e.target.style.backgroundColor = '#4e73df')}
 //         >
 //           Search
 //         </button>
 //       </div>
 
-//       {/* Auth buttons and welcome */}
+//       {/* Error Message */}
+//       {showError && (
+//         <div
+//           style={{
+//             position: 'absolute',
+//             top: 515,
+//             left: '50%',
+//             transform: 'translateX(-50%)',
+//             color: '#ff4d4f',
+//             background: '#fff3f3',
+//             padding: '8px 16px',
+//             borderRadius: '20px',
+//             fontSize: '16px',
+//             fontWeight: '500',
+//             boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+//             animation: 'fadeIn 0.5s ease-in-out',
+//           }}
+//         >
+//           Please enter something to search!
+//         </div>
+//       )}
+
+//       {/* Auth buttons */}
 //       <div
 //         style={{
 //           position: 'absolute',
@@ -428,7 +492,7 @@ export default SpritzComponent;
 
 
 // // src/components/spritz_components.js
-// import React, { useState } from 'react';
+// import React, { useState, useEffect } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { auth, provider } from '../firebase-config';
 // import { signInWithPopup, signOut } from 'firebase/auth';
@@ -436,15 +500,30 @@ export default SpritzComponent;
 // const SpritzComponent = () => {
 //   const [searchText, setSearchText] = useState('');
 //   const [user, setUser] = useState(null);
+//   const [animateLogo, setAnimateLogo] = useState(false);
 //   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     setAnimateLogo(true);
+//   }, []);
 
 //   const handleSearchChange = (event) => {
 //     setSearchText(event.target.value);
 //   };
 
-//   const handleSearchClick = () => {
-//     // Navigate to SearchResultsPage with the query in the URL
-//     navigate(`/searchResultsPage?query=${searchText}`);
+//   const handleSearch = () => {
+//     if (searchText.trim() === '') {
+//       alert('Please enter a search query.');
+//     } else {
+//       navigate(`/searchResultsPage?query=${searchText}`);
+//       setSearchText('');
+//     }
+//   };
+
+//   const handleKeyPress = (event) => {
+//     if (event.key === 'Enter') {
+//       handleSearch();
+//     }
 //   };
 
 //   const handleGoogleSignIn = async () => {
@@ -501,6 +580,8 @@ export default SpritzComponent;
 //           fontFamily: 'Playfair',
 //           fontWeight: '700',
 //           wordWrap: 'break-word',
+//           transform: animateLogo ? 'scale(1)' : 'scale(0.8)',
+//           transition: 'transform 0.6s ease-in-out',
 //         }}
 //       >
 //         spritz
@@ -552,6 +633,7 @@ export default SpritzComponent;
 //           placeholder="Paste URL or Search"
 //           value={searchText}
 //           onChange={handleSearchChange}
+//           onKeyDown={handleKeyPress}
 //         />
 //         <button
 //           style={{
@@ -566,9 +648,9 @@ export default SpritzComponent;
 //             color: 'white',
 //             transition: 'background-color 0.3s',
 //           }}
-//           onClick={handleSearchClick}
-//           onMouseEnter={(e) => e.target.style.backgroundColor = '#80D8FF'}
-//           onMouseLeave={(e) => e.target.style.backgroundColor = '#B7F0FF'}
+//           onClick={handleSearch}
+//           onMouseEnter={(e) => (e.target.style.backgroundColor = '#80D8FF')}
+//           onMouseLeave={(e) => (e.target.style.backgroundColor = '#B7F0FF')}
 //         >
 //           Search
 //         </button>
