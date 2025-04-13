@@ -41,6 +41,10 @@ export async function scrapeDupe(url) {
 
     // Extract a portion of the page's text content
     const scraped = await page.evaluate(() => {
+      const getMeta = (name) => {
+        const meta = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+        return meta?.content || '';
+      };
       const section = document.querySelector('main, .product-info, .description, body');
       const text = section?.innerText?.slice(0, 8000) || '';
     
@@ -64,7 +68,7 @@ export async function scrapeDupe(url) {
 }
 
 export async function scrapeProductDetails(url) {
-  // console.log(url);
+  console.log(url);
   let browser;
 
   try {

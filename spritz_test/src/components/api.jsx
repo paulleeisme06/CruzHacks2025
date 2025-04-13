@@ -1,4 +1,4 @@
-export async function getDupe(url, setDupeResult, setApiFailed, setLoading) {
+export async function getDupe(url, setDupeResult, setApiFailed, setLoading, setSearchURL) {
   try {
     const response = await fetch('http://localhost:3000/api/scrape', {
       method: 'POST',
@@ -18,6 +18,7 @@ export async function getDupe(url, setDupeResult, setApiFailed, setLoading) {
     setDupeResult(null);
   } finally {
     setLoading(false);
+    setSearchURL(null);
   }
 }
 

@@ -26,6 +26,7 @@ export async function analyzeDupePage(scrapedHtml) {
   const result = await model.generateContent(prompt);
   const response = await result.response;
   const text = response.text();
+  console.log("dupe", text);
   try {
     const parsed = JSON.parse(text);
     if (!parsed.copy || !parsed.price || !parsed.image) {
@@ -85,7 +86,7 @@ Price: ${scrapedData.price || 'Unknown'}
   const result = await model.generateContent(prompt);
   const response = await result.response;
   const text = response.text();
-
+  console.log("dupe", text);
   try {
     const parsed = JSON.parse(text);
     if (!parsed.name || !parsed.category || !parsed.copy || !parsed.price || !parsed.image) {

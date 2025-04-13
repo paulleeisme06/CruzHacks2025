@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, provider } from '../firebase-config';
 import { signInWithPopup, signOut } from 'firebase/auth';
+import DupeContext from '../context/DupeContext';
 
 const SpritzComponent = () => {
   const [searchText, setSearchText] = useState('');
   const [user, setUser] = useState(null);
   const [showError, setShowError] = useState(false);
+  const {setSearchURL} = React.useContext(DupeContext)
   const navigate = useNavigate();
 
   const handleSearchChange = (event) => {
@@ -19,7 +21,8 @@ const SpritzComponent = () => {
       setShowError(true);
       return;
     }
-    navigate(`/searchResultsPage?query=${searchText}`);
+    setSearchURL(searchText);
+    navigate(`/searchResultsPage`);
   };
 
   const handleGoogleSignIn = async () => {

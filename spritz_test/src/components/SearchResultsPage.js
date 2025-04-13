@@ -1,45 +1,28 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import DupeContext from '../context/DupeContext';
-import { getDupe } from '../api/getDupe'; // adjust path to your actual file
-export async function getDupe(url, setDupeResult, setApiFailed, setLoading) {
-  try {
-    const response = await fetch('http://localhost:3000/api/scrape', {
-      method: 'POST',
-      body: JSON.stringify({ url }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) throw new Error('API call failed');
-    const json = await response.json();
-
-    setDupeResult(json);
-    setApiFailed(false);
-  } catch (error) {
-    setApiFailed(true);
-    setDupeResult(null);
-  } finally {
-    setLoading(false);
-  }
-}
+import {useNavigate, useLocation} from 'react-router-dom';
+import DupeContext from '../context/DupeContext.jsx';
+import { getDupe } from './api.jsx';
 
 const SearchResultsPage = () => {
+  // const location = useLocation();
+  const navigate = useNavigate(); 
+  const {dupeResult, setDupeResult, setApiFailed, searchURL, setSearchURL, loading, setLoading} = useContext(DupeContext);
+  console.log("searchURL", searchURL);
   const location = useLocation();
-  const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
-  const searchQuery = queryParams.get('query');
-
-  const [loading, setLoading] = useState(true);
-  const { dupeResult, setDupeResult, apiFailed, setApiFailed } = useContext(DupeContext);
-
+  const rawPath = location.pathname
+  let urlToUse;
+  if (rawPath !== "/searchResultsPage") {
+    urlToUse = decodeURIComponent(rawPath.slice(1));
+  } else {
+    urlToUse = searchURL;
+  }
+  console.log("url to use", urlToUse);
   useEffect(() => {
-    if (!searchQuery) return;
-
+    if (!urlToUse) return;
+    // console.log("url to use", urlToUse);
     setLoading(true);
-    getDupe(searchQuery, setDupeResult, setApiFailed, setLoading);
-  }, [searchQuery]);
+    getDupe(urlToUse, setDupeResult, setApiFailed, setLoading, setSearchURL);
+  }, [urlToUse, setDupeResult, setApiFailed, setLoading, setSearchURL]);
 
   const handleNewSearch = () => {
     navigate('/');
@@ -140,12 +123,11 @@ const SearchResultsPage = () => {
                 color: '#333',
               }}
             >
-              Top Match for: <span style={{ color: '#FF662F' }}>{searchQuery}</span>
+              Top Match for: <span style={{ color: '#FF662F' }}>{urlToUse}</span>
             </h2>
 
             
               <div
-                key={id}
                 style={{
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -212,6 +194,7 @@ const SearchResultsPage = () => {
                   <p><strong>Category:</strong> {dupeResult?.dupeCategory}</p>
                   <p><strong>Description:</strong> {dupeResult?.dupeCopy}</p>
                   <p><strong>Price:</strong> ${dupeResult?.dupePrice}</p>
+                  <a href ={dupeResult?.dupeLink}><strong>Link to Product:</strong></a>
                 </div>
               </div>
           </>
