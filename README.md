@@ -1,23 +1,61 @@
 # CruzHacks2025
 Team Members: Bodie, Luis, Paul, Judy
-Project Name: Aether
+Project Name: Spritz
 
-Technical Overview:
-Our project is an AI-powered chatbot tool inspired by platforms like Dupe.com, specifically designed for discovering fragrance alternatives. The core idea is to allow users to prepend our service URL (e.g., fragrancefinder.ai) to the URL of any high-end fragrance product page they are browsing. Our system then provides a curated list of similar or more affordable "dupes" based on that target fragrance.
+# Spritz – Affordable Alternatives to Luxury Fragrances
 
-Frontend:
-The application features a React-based frontend that utilizes React Router and useParams to extract the target URL (the fragrance website being searched) appended after our own. The UI is responsive, accessible, and displays results using React component templating.
+**Spritz** is a web application built to help users find affordable alternatives—or "dupes"—for high-end perfumes and colognes. Aimed at students, budget-conscious shoppers, and everyday consumers who love great scents without the luxury markup, the app uses AI and web scraping to deliver personalized recommendations. Users simply paste the URL of a luxury fragrance product into the app, and it returns similar-smelling, budget-friendly options along with images, detailed information, and database-generated comparisons.
 
-Backend/API:
-The backend is built with Node.js and Express, exposing a RESTful API that receives the target fragrance URL. We use Puppeteer, a headless browser automation tool, to scrape the HTML content of the given page.
+---
 
-AI Integration:
-The scraped HTML is sent to Google’s Gemini API with a pre-defined prompt designed to extract key information. If the content cannot be scraped or does not relate to a fragrance product, a 404 response is returned to the frontend. Otherwise, the Gemini API extracts the name of the fragrance and classifies it into one of several predefined categories (e.g., floral, smoky, woody, citrus).
+## How It Works
 
-Database and Matching Logic:
-The extracted fragrance data is compared against a proprietary PostgreSQL database of known dupe fragrances, which runs in a Docker container. If a direct match is found, the system returns relevant data and links, along with LLM-generated product descriptions and comparisons. If no direct dupe exists, the system performs a category-based similarity match and returns suggested alternatives, again enhanced with AI-generated comparative copy.
+1. **User Input**: The user enters a URL of a high-end fragrance product.
+2. **Web Scraping**: The backend uses **Puppeteer** to scrape the product page's HTML.
+3. **Fragrance Analysis**: The HTML is sent to the **Gemini API**, which identifies the product name and classifies it into a predefined scent category (e.g., floral, woody, citrus).
+4. **Database Lookup**: The backend queries a **PostgreSQL** database (running in a Docker container) to find exact or category-based dupes.
+5. **AI-Powered Results**: If matches are found, they’re returned to the user along with product images, purchase links, and LLM-generated descriptions and comparisons.
+   
+---
 
-Frontend Display:
-The React frontend dynamically displays product images, descriptions, and links in a user-friendly layout. The design ensures clarity, usability, and ease of navigation for users exploring fragrance options.
+## Tech Stack
 
+### Frontend
+- [React.js](https://reactjs.org/)
+- [React Router](https://reactrouter.com/)
+- [TailwindCSS](https://tailwindcss.com/) (for styling)
 
+### Backend
+- [Node.js](https://nodejs.org/)
+- [Express.js](https://expressjs.com/)
+- [Puppeteer](https://pptr.dev/)
+- [Gemini API](https://deepmind.google/technologies/gemini/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Docker](https://www.docker.com/)
+- [OpenAPI 3.0](https://swagger.io/specification/)
+---
+## Application Structure
+
+- `client/`: React frontend
+- `server/`: Node/Express backend
+- `docker/`: Docker Compose & PostgreSQL setup
+- `db/`: Database schema and dupe data
+
+---
+
+## 🚀 Running the App
+
+To run the app locally:
+
+```bash
+# Stop and remove existing volumes
+docker-compose -f ./docker/docker-compose.yml down --volumes
+
+# Start PostgreSQL DB
+npm run db
+
+# Start backend server and frontend
+npm run dev
+
+#Start frontend (make sure all required components are installed, look in json file)
+npm start
