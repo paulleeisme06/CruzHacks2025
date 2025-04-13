@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import {useNavigate, useLocation} from 'react-router-dom';
 import DupeContext from '../context/DupeContext.jsx';
 import { getDupe } from './api.jsx';

@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { categories } from './format.js';
+import { categories } from './categories.js';
+import { safelyParseGeminiJson } from './format.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,15 +13,16 @@ const model = genAI.getGenerativeModel(
 export async function analyzeDupePage(scrapedHtml) {
   const prompt = `
     You are a fragrance marketing expert.
-    Given this text from a page containg a fragrence below, 
-    do three things:
+    Given this text from a page containing a fragrance below,
+    do three things and respond STRICTLY in JSON format:
+
     1. Write a concise 2–3 sentence product description that could be used on a product page. If a price is provided, you may include it in the copy if it makes sense.
-    2. standardize and extract the price (just the number)
-    3. standardize and extract the exact full link to the image
+    2. Standardize and extract the price (just the numerical value). If no price is found, set the "price" value to null.
+    3. Standardize and extract the exact full link to the image. If no image link is found, set the "image" value to null.
 
-    Return your full response as a JSON object with the keys: "copy", "price", and "image". Do not include anything outside of the JSON object.
+    Your ENTIRE response MUST be a valid JSON object with the following keys: "copy", "price", and "image" that can be passed as a valid input to JSON.parse(). Do not include any other text or formatting outside of this JSON object.
 
-    Fragrence page: ${scrapedHtml}
+    Fragrance page: ${scrapedHtml}
 `;
 
   const result = await model.generateContent(prompt);
@@ -48,7 +50,8 @@ export async function analyzeDupePage(scrapedHtml) {
         throw new Error('Invalid JSON returned from Gemini (after extraction)');
       }
     } else {
-      throw new Error('Could not find valid JSON structure in Gemini response');
+      const parsed = safelyParseGeminiJson(text);
+      return parsed;
     }
   }
 }
@@ -66,21 +69,22 @@ export async function analyzeFragranceWithGemini(scrapedData) {
   }
 
   const prompt = `
-You are a fragrance marketing expert.
-Given the following fragrance information, do five things:
-1. Standardize and extract the name of the fragrance.
-2. Categorize it strictly as exactly one of the following: ${categories}.
-3. Write a concise 2–3 sentence product description that could be used on a product page. If a price is provided, you may include it in the copy if it makes sense.
-4. standardize and extract the price (just the number)
-5. standardize and extract the exact full link to the image
+    You are a fragrance marketing expert.
+    Given the following fragrance information, do five things and respond STRICTLY in JSON format:
 
-Return your full response as a JSON object with the keys: "name", "category", "copy", "price", and "image". Do not include anything outside of the JSON object.
+    1. Standardize and extract the name of the fragrance.
+    2. Categorize it strictly as exactly one of the following: ${categories}.
+    3. Write a concise 2–3 sentence product description that could be used on a product page. If a price is provided, you may include it in the copy if it makes sense.
+    4. Standardize and extract the price (just the numerical value). If no price is found, set the "price" value to null.
+    5. Standardize and extract the exact full link to the image. If no image link is found, set the "image" value to null.
 
-Fragrance Info:
-Name: ${scrapedData.name || 'Unknown'}
-Description: ${scrapedData.description}
-Image: ${scrapedData.image || 'None'}
-Price: ${scrapedData.price || 'Unknown'}
+    Your ENTIRE response MUST be a valid JSON object with the following keys: "name", "category", "copy", "price", and "image" that can be passed as a valid input to JSON.parse(). Do not include any other text or formatting outside of this JSON object.
+
+    Fragrance Info:
+    Name: ${scrapedData.name || 'Unknown'}
+    Description: ${scrapedData.description}
+    Image: ${scrapedData.image || 'None'}
+    Price: ${scrapedData.price || 'Unknown'}
 `;
 
   const result = await model.generateContent(prompt);
@@ -108,7 +112,8 @@ Price: ${scrapedData.price || 'Unknown'}
         throw new Error('Invalid JSON returned from Gemini (after extraction)');
       }
     } else {
-      throw new Error('Could not find valid JSON structure in Gemini response');
+      const parsed = safelyParseGeminiJson(text);
+      return parsed;
     }
   }
 }
