@@ -11,11 +11,10 @@ const model = genAI.getGenerativeModel(
 
 /**
  * Analyze scraped fragrance data using Gemini to get:
- * - Standardized name (optional if already extracted)
+ * - Standardized name
  * - One of: masculine or feminine
- * - Marketing copy for the fragrance
- *
- * @param {{ name: string, description: string, image?: string }} scrapedData
+ * - Marketing copy for the fragrance (2–3 sentence)
+ * @param {{ name: string, description: string, image?: string, price?: string }} scrapedData
  * @returns {Promise<{ name: string, category: string, copy: string }>}
  */
 export async function analyzeFragranceWithGemini(scrapedData) {
@@ -24,48 +23,45 @@ export async function analyzeFragranceWithGemini(scrapedData) {
   }
 
   const prompt = `
-  You are a fragrance marketing expert.
-  Given the following fragrance information, do three things:
-  1. Standardize and extract the name of the fragrance.
-  2. Categorize it strictly as exactly one of the following categories: ${categories}
-  3. Write a concise product description of 2-3 sentences suitable for a retail store.
-  
-  Return your entire response as a valid JSON object with the following keys: "name", "category", and "copy". Ensure there is no additional text or markdown formatting outside of the JSON structure.
-  
-  Fragrance Info:
-  Name: ${scrapedData.name || 'Unknown'}
-  Description: ${scrapedData.description}
-  Image: ${scrapedData.image || 'None'}
-  `;
+You are a fragrance marketing expert.
+Given the following fragrance information, do five things:
+1. Standardize and extract the name of the fragrance.
+2. Categorize it strictly as exactly one of the following: ${categories}.
+3. Write a concise 2–3 sentence product description that could be used on a product page. If a price is provided, you may include it in the copy if it makes sense.
+4. standardize and extract the price (just the number)
+5. standardize and extract the exact full link the image
+
+Return your full response as a JSON object with the keys: "name", "category", "copy", "price", and "image". Do not include anything outside of the JSON object.
+
+Fragrance Info:
+Name: ${scrapedData.name || 'Unknown'}
+Description: ${scrapedData.description}
+Image: ${scrapedData.image || 'None'}
+Price: ${scrapedData.price || 'Unknown'}
+`;
 
   const result = await model.generateContent(prompt);
   const response = await result.response;
   const text = response.text();
-  
+
   try {
-    // Attempt to parse the entire text
     const parsed = JSON.parse(text);
-    if (!parsed.name || !parsed.category || !parsed.copy) {
+    if (!parsed.name || !parsed.category || !parsed.copy || !parsed.price || !parsed.image) {
       throw new Error('Missing expected keys in Gemini response');
     }
     return parsed;
   } catch (err) {
-    // console.error('Error parsing Gemini response (attempt 1):', text);
-    // Attempt to find the JSON object within the text (in case of extra text)
     const jsonStartIndex = text.indexOf('{');
     const jsonEndIndex = text.lastIndexOf('}');
-
     if (jsonStartIndex !== -1 && jsonEndIndex !== -1 && jsonStartIndex < jsonEndIndex) {
       const potentialJson = text.substring(jsonStartIndex, jsonEndIndex + 1);
       try {
         const parsed = JSON.parse(potentialJson);
-        if (!parsed.name || !parsed.category || !parsed.copy) {
+        if (!parsed.name || !parsed.category || !parsed.copy || !parsed.price || !parsed.image) {
           throw new Error('Missing expected keys in Gemini response (attempt 2)');
         }
-        // console.log('Successfully parsed JSON after extracting:', potentialJson);
         return parsed;
       } catch (secondErr) {
-        // console.error('Error parsing extracted JSON:', potentialJson, secondErr);
         throw new Error('Invalid JSON returned from Gemini (after extraction)');
       }
     } else {
