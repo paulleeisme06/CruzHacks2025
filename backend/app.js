@@ -14,10 +14,10 @@ app.use(cors());
 app.use(express.json());
 
 // Load YAML Swagger document
-const swaggerDocument = YAML.load('./swagger.yaml');
+// const swaggerDocument = YAML.load('./swagger.yaml');
 
-// Swagger UI setup
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// // Swagger UI setup
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // API routes
 app.post('/api/scrape', scrapeRoutes.findDupes);
