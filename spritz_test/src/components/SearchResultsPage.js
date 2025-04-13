@@ -1,5 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import DupeContext from '../context/DupeContext';
+import { getDupe } from '../api/getDupe'; // adjust path to your actual file
+export async function getDupe(url, setDupeResult, setApiFailed, setLoading) {
+  try {
+    const response = await fetch('http://localhost:3000/api/scrape', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) throw new Error('API call failed');
+    const json = await response.json();
+
+    setDupeResult(json);
+    setApiFailed(false);
+  } catch (error) {
+    setApiFailed(true);
+    setDupeResult(null);
+  } finally {
+    setLoading(false);
+  }
+}
 
 const SearchResultsPage = () => {
   const location = useLocation();
@@ -7,36 +31,14 @@ const SearchResultsPage = () => {
   const queryParams = new URLSearchParams(location.search);
   const searchQuery = queryParams.get('query');
 
-  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { dupeResult, setDupeResult, apiFailed, setApiFailed } = useContext(DupeContext);
 
   useEffect(() => {
     if (!searchQuery) return;
 
     setLoading(true);
-    setTimeout(() => {
-      const fetchedResults = [
-        {
-          id: 1,
-          userInput: {
-            name: searchQuery,
-            category: 'Luxury Eau de Parfum',
-            copy: 'A captivating blend of citrus and amber for the modern muse.',
-            image: '/luxury-perfume.jpg',
-            price: '$180',
-          },
-          topMatch: {
-            name: 'Spritz Bloom Essence',
-            category: 'Affordable Dupe',
-            copy: 'A similar scent profile with fresh notes and lasting power.',
-            image: '/spritz-bloom.jpg',
-            price: '$39',
-          },
-        }
-      ];
-      setResults(fetchedResults);
-      setLoading(false);
-    }, 1000);
+    getDupe(searchQuery, setDupeResult, setApiFailed, setLoading);
   }, [searchQuery]);
 
   const handleNewSearch = () => {
@@ -44,6 +46,7 @@ const SearchResultsPage = () => {
   };
 
   return (
+
     <div
       style={{
         position: 'relative',
@@ -140,7 +143,7 @@ const SearchResultsPage = () => {
               Top Match for: <span style={{ color: '#FF662F' }}>{searchQuery}</span>
             </h2>
 
-            {results.map(({ id, userInput, topMatch }) => (
+            
               <div
                 key={id}
                 style={{
@@ -166,8 +169,8 @@ const SearchResultsPage = () => {
                     🔍 You Searched:
                   </h3>
                   <img
-                    src={userInput.image}
-                    alt={userInput.name}
+                    src={dupeResult?.targetImage}
+                    alt={dupeResult?.targetImage}
                     style={{
                       width: '100%',
                       borderRadius: '12px',
@@ -175,10 +178,10 @@ const SearchResultsPage = () => {
                       marginBottom: '15px',
                     }}
                   />
-                  <p><strong>Name:</strong> {userInput.name}</p>
-                  <p><strong>Category:</strong> {userInput.category}</p>
-                  <p><strong>Description:</strong> {userInput.copy}</p>
-                  <p><strong>Price:</strong> {userInput.price}</p>
+                  <p><strong>Name:</strong> {dupeResult?.targetName}</p>
+                  <p><strong>Category:</strong> {dupeResult?.targetCategory}</p>
+                  <p><strong>Description:</strong> {dupeResult?.targetCopy}</p>
+                  <p><strong>Price:</strong> ${dupeResult?.targetPrice}</p>
                 </div>
 
                 {/* Right: Top Match */}
@@ -196,8 +199,8 @@ const SearchResultsPage = () => {
                     🌟 Our Top Match:
                   </h3>
                   <img
-                    src={topMatch.image}
-                    alt={topMatch.name}
+                    src={dupeResult?.dupeImage}
+                    alt={dupeResult?.dupeImage}
                     style={{
                       width: '100%',
                       borderRadius: '12px',
@@ -205,13 +208,12 @@ const SearchResultsPage = () => {
                       marginBottom: '15px',
                     }}
                   />
-                  <p><strong>Name:</strong> {topMatch.name}</p>
-                  <p><strong>Category:</strong> {topMatch.category}</p>
-                  <p><strong>Description:</strong> {topMatch.copy}</p>
-                  <p><strong>Price:</strong> {topMatch.price}</p>
+                  <p><strong>Name:</strong> {dupeResult?.dupeName}</p>
+                  <p><strong>Category:</strong> {dupeResult?.dupeCategory}</p>
+                  <p><strong>Description:</strong> {dupeResult?.dupeCopy}</p>
+                  <p><strong>Price:</strong> ${dupeResult?.dupePrice}</p>
                 </div>
               </div>
-            ))}
           </>
         )}
       </div>
