@@ -56,7 +56,7 @@ export async function scrapeDupe(url) {
       return text + image;
     })
 
-    // console.log(scraped.slice(0, 100));
+    console.log(scraped.slice(0, 100));
     return scraped;
 
   } catch (err) {
